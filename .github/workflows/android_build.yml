@@ -1,36 +1,35 @@
-name: Build Android App
+name: Build Android APK
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
-      - main  # O workflow será disparado quando houver mudanças na branch 'main'
-  pull_request:
-    branches:
-      - main  # O workflow será disparado quando houver um PR para a branch 'main'
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Usamos a última versão do Ubuntu para o ambiente de build
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2  # Baixa o código do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2  # Instala o JDK 11 necessário para compilar o Android
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          distribution: temurin
+          java-version: '17'
 
-      - name: Set up Android SDK
-        uses: ramusus/gradle-android-sdk@v1  # Configura o SDK Android
+      - name: Permissão para Gradle
+        run: chmod +x gradlew
+
+      - name: Compilar APK Debug
+        run: ./gradlew assembleDebug
+
+      - name: Enviar APK
+        uses: actions/upload-artifact@v4
         with:
-          sdk-version: "30.0.3"  # Use a versão do SDK necessária para seu app
-
-      - name: Build with Gradle
-        run: ./gradlew build # Executa a build do Gradle para compilar o APK
-
-      - name: Upload APK as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: android-apk
-          path: app/build/outputs/apk/debug/app-debug.apk  # Caminho do APK gerado
+          name: APK-Debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
